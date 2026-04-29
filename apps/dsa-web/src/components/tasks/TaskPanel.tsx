@@ -2,6 +2,8 @@ import type React from 'react';
 import { Badge, Card, StatusDot } from '../common';
 import { DashboardPanelHeader } from '../dashboard';
 import type { TaskInfo } from '../../types/analysis';
+import { useUiLanguage } from '../../contexts/UiLanguageContext';
+import { getUiText } from '../../utils/uiText';
 
 /**
  * 任务项组件属性
@@ -16,7 +18,9 @@ interface TaskItemProps {
 const TaskItem: React.FC<TaskItemProps> = ({ task }) => {
   const isPending = task.status === 'pending';
   const isProcessing = task.status === 'processing';
-  const statusLabel = isProcessing ? '分析中' : '等待中';
+  const language = useUiLanguage();
+  const text = getUiText(language);
+  const statusLabel = isProcessing ? text.tasks.processingLabel : text.tasks.waitingLabel;
   const statusVariant = isProcessing ? 'info' : 'default';
   const statusTone = isProcessing ? 'info' : 'neutral';
   const progress = Math.max(0, Math.min(100, task.progress || 0));
@@ -26,9 +30,9 @@ const TaskItem: React.FC<TaskItemProps> = ({ task }) => {
       {/* 状态图标 */}
       <div className="shrink-0">
         {isProcessing ? (
-          <StatusDot tone="info" pulse className="h-2.5 w-2.5" aria-label="任务进行中" />
+          <StatusDot tone="info" pulse className="h-2.5 w-2.5" aria-label={text.tasks.processingStatus} />
         ) : isPending ? (
-          <StatusDot tone="neutral" className="h-2.5 w-2.5" aria-label="任务等待中" />
+          <StatusDot tone="neutral" className="h-2.5 w-2.5" aria-label={text.tasks.pendingStatus} />
         ) : null}
       </div>
 
@@ -96,9 +100,11 @@ interface TaskPanelProps {
 export const TaskPanel: React.FC<TaskPanelProps> = ({
   tasks,
   visible = true,
-  title = '分析任务',
+  title,
   className = '',
 }) => {
+  const language = useUiLanguage();
+  const text = getUiText(language);
   // 筛选活跃任务（pending 和 processing）
   const activeTasks = tasks.filter(
     (t) => t.status === 'pending' || t.status === 'processing'
@@ -121,7 +127,7 @@ export const TaskPanel: React.FC<TaskPanelProps> = ({
       <div className="border-b border-subtle px-3 py-3">
         <DashboardPanelHeader
           className="mb-0"
-          title={title}
+          title={title ?? text.tasks.title}
           titleClassName="text-sm font-medium"
           leading={(
             <svg className="h-4 w-4 text-cyan" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -138,14 +144,14 @@ export const TaskPanel: React.FC<TaskPanelProps> = ({
             <div className="flex items-center gap-2 text-xs text-muted-text">
               {processingCount > 0 && (
                 <span className="flex items-center gap-1">
-                  <StatusDot tone="info" pulse className="h-1.5 w-1.5" aria-label="进行中任务" />
-                  {processingCount} 进行中
+                  <StatusDot tone="info" pulse className="h-1.5 w-1.5" aria-label={text.tasks.processingStatus} />
+                  {processingCount} {text.tasks.processing}
                 </span>
               )}
               {pendingCount > 0 ? (
                 <span className="flex items-center gap-1">
-                  <StatusDot tone="neutral" className="h-1.5 w-1.5" aria-label="等待中任务" />
-                  {pendingCount} 等待中
+                  <StatusDot tone="neutral" className="h-1.5 w-1.5" aria-label={text.tasks.pendingStatus} />
+                  {pendingCount} {text.tasks.pending}
                 </span>
               ) : null}
             </div>

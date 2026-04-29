@@ -8,6 +8,8 @@ import { cn } from '../../utils/cn';
 import { ConfirmDialog } from '../common/ConfirmDialog';
 import { StatusDot } from '../common/StatusDot';
 import { ThemeToggle } from '../theme/ThemeToggle';
+import { useUiLanguage } from '../../contexts/UiLanguageContext';
+import { getUiText } from '../../utils/uiText';
 
 type SidebarNavProps = {
   collapsed?: boolean;
@@ -23,18 +25,20 @@ type NavItem = {
   badge?: 'completion';
 };
 
-const NAV_ITEMS: NavItem[] = [
-  { key: 'home', label: '首页', to: '/', icon: Home, exact: true },
-  { key: 'chat', label: '问股', to: '/chat', icon: MessageSquareQuote, badge: 'completion' },
-  { key: 'portfolio', label: '持仓', to: '/portfolio', icon: BriefcaseBusiness },
-  { key: 'backtest', label: '回测', to: '/backtest', icon: BarChart3 },
-  { key: 'settings', label: '设置', to: '/settings', icon: Settings2 },
-];
-
 export const SidebarNav: React.FC<SidebarNavProps> = ({ collapsed = false, onNavigate }) => {
   const { authEnabled, logout } = useAuth();
+  const language = useUiLanguage();
+  const text = getUiText(language);
   const completionBadge = useAgentChatStore((state) => state.completionBadge);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+
+  const navItems: NavItem[] = [
+    { key: 'home', label: text.shell.home.title, to: '/', icon: Home, exact: true },
+    { key: 'chat', label: text.shell.chat.title, to: '/chat', icon: MessageSquareQuote, badge: 'completion' },
+    { key: 'portfolio', label: language === 'en' ? 'Portfolio' : '持仓', to: '/portfolio', icon: BriefcaseBusiness },
+    { key: 'backtest', label: text.shell.backtest.title, to: '/backtest', icon: BarChart3 },
+    { key: 'settings', label: text.shell.settings.title, to: '/settings', icon: Settings2 },
+  ];
 
   return (
     <div className="flex h-full flex-col">
@@ -47,8 +51,8 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({ collapsed = false, onNav
         ) : null}
       </div>
 
-      <nav className="flex flex-1 flex-col gap-1.5" aria-label="主导航">
-        {NAV_ITEMS.map(({ key, label, to, icon: Icon, exact, badge }) => (
+      <nav className="flex flex-1 flex-col gap-1.5" aria-label={language === 'en' ? 'Primary navigation' : '主导航'}>
+        {navItems.map(({ key, label, to, icon: Icon, exact, badge }) => (
           <NavLink
             key={key}
             to={to}
@@ -87,7 +91,7 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({ collapsed = false, onNav
                       'absolute right-3 border-2 border-background shadow-[0_0_10px_var(--nav-indicator-shadow)]',
                       collapsed ? 'right-2 top-2' : ''
                     )}
-                    aria-label="问股有新消息"
+                    aria-label={language === 'en' ? 'Ask Stock has a new message' : '问股有新消息'}
                   />
                 ) : null}
               </>
@@ -110,16 +114,16 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({ collapsed = false, onNav
           )}
         >
           <LogOut className="h-5 w-5 shrink-0" />
-          {!collapsed ? <span>退出</span> : null}
+          {!collapsed ? <span>{text.shell.logout}</span> : null}
         </button>
       ) : null}
 
       <ConfirmDialog
         isOpen={showLogoutConfirm}
-        title="退出登录"
-        message="确认退出当前登录状态吗？退出后需要重新输入密码。"
-        confirmText="确认退出"
-        cancelText="取消"
+        title={text.shell.logoutTitle}
+        message={text.shell.logoutMessage}
+        confirmText={text.shell.logoutConfirm}
+        cancelText={text.shell.logoutCancel}
         isDanger
         onConfirm={() => {
           setShowLogoutConfirm(false);

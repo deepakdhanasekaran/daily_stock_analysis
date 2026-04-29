@@ -6,6 +6,8 @@ import { Drawer } from '../common/Drawer';
 import { SidebarNav } from './SidebarNav';
 import { cn } from '../../utils/cn';
 import { ThemeToggle } from '../theme/ThemeToggle';
+import { useUiLanguage } from '../../contexts/UiLanguageContext';
+import { getUiText } from '../../utils/uiText';
 
 type ShellProps = {
   children?: React.ReactNode;
@@ -14,6 +16,8 @@ type ShellProps = {
 export const Shell: React.FC<ShellProps> = ({ children }) => {
   const [mobileOpen, setMobileOpen] = useState(false);
   const collapsed = false;
+  const language = useUiLanguage();
+  const text = getUiText(language);
 
   useEffect(() => {
     if (!mobileOpen) {
@@ -39,7 +43,7 @@ export const Shell: React.FC<ShellProps> = ({ children }) => {
           type="button"
           onClick={() => setMobileOpen(true)}
           className="pointer-events-auto inline-flex h-10 w-10 items-center justify-center rounded-xl border border-border/70 bg-card/85 text-secondary-text shadow-soft-card backdrop-blur-md transition-colors hover:bg-hover hover:text-foreground"
-          aria-label="打开导航菜单"
+          aria-label={text.shell.openNav}
         >
           <Menu className="h-5 w-5" />
         </button>
@@ -68,7 +72,7 @@ export const Shell: React.FC<ShellProps> = ({ children }) => {
       <Drawer
         isOpen={mobileOpen}
         onClose={() => setMobileOpen(false)}
-        title="导航菜单"
+        title={language === 'en' ? 'Navigation menu' : '导航菜单'}
         width="max-w-xs"
         zIndex={90}
         side="left"

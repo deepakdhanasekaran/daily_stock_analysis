@@ -10,12 +10,16 @@ import ChatPage from './pages/ChatPage';
 import PortfolioPage from './pages/PortfolioPage';
 import { ApiErrorAlert, Shell } from './components/common';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
+import { UiLanguageProvider, useUiLanguage } from './contexts/UiLanguageContext';
 import { useAgentChatStore } from './stores/agentChatStore';
+import { getUiText } from './utils/uiText';
 import './App.css';
 
 const AppContent: React.FC = () => {
   const location = useLocation();
   const { authEnabled, loggedIn, isLoading, loadError, refreshStatus } = useAuth();
+  const language = useUiLanguage();
+  const text = getUiText(language);
 
   useEffect(() => {
     useAgentChatStore.getState().setCurrentRoute(location.pathname);
@@ -40,7 +44,7 @@ const AppContent: React.FC = () => {
           className="btn-primary"
           onClick={() => void refreshStatus()}
         >
-          重试
+          {text.home.retry}
         </button>
       </div>
     );
@@ -77,7 +81,9 @@ const App: React.FC = () => {
   return (
     <Router>
       <AuthProvider>
-        <AppContent />
+        <UiLanguageProvider>
+          <AppContent />
+        </UiLanguageProvider>
       </AuthProvider>
     </Router>
   );

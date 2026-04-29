@@ -8,7 +8,9 @@ import { HistoryList } from '../components/history';
 import { ReportMarkdown, ReportSummary } from '../components/report';
 import { TaskPanel } from '../components/tasks';
 import { useDashboardLifecycle, useHomeDashboardState } from '../hooks';
+import { useUiLanguage } from '../contexts/UiLanguageContext';
 import { getReportText, normalizeReportLanguage } from '../utils/reportLanguage';
+import { getUiText } from '../utils/uiText';
 
 const HomePage: React.FC = () => {
   const navigate = useNavigate();
@@ -51,10 +53,12 @@ const HomePage: React.FC = () => {
     closeMarkdownDrawer,
     selectedIds,
   } = useHomeDashboardState();
+  const uiLanguage = useUiLanguage();
+  const uiText = getUiText(uiLanguage);
 
   useEffect(() => {
-    document.title = '每日选股分析 - DSA';
-  }, []);
+    document.title = uiText.home.documentTitle;
+  }, [uiText.home.documentTitle]);
   const reportLanguage = normalizeReportLanguage(selectedReport?.meta.reportLanguage);
   const reportText = getReportText(reportLanguage);
 
@@ -179,7 +183,7 @@ const HomePage: React.FC = () => {
                 onSubmit={(stockCode, stockName, selectionSource) => {
                   handleSubmitAnalysis(stockCode, stockName, selectionSource);
                 }}
-                placeholder="输入股票代码或名称，如 600519、贵州茅台、AAPL"
+                placeholder={uiText.home.searchPlaceholder}
                 disabled={isAnalyzing}
                 className={inputError ? 'border-danger/50' : undefined}
               />
@@ -191,7 +195,7 @@ const HomePage: React.FC = () => {
                 onChange={(e) => setNotify(e.target.checked)}
                 className="h-3.5 w-3.5 rounded border-border accent-primary"
               />
-              推送通知
+              {uiText.home.pushNotification}
             </label>
             <button
               type="button"
@@ -205,10 +209,10 @@ const HomePage: React.FC = () => {
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                   </svg>
-                  分析中
+                  {uiText.home.analyzing}
                 </>
               ) : (
-                '分析'
+                uiText.home.analyze
               )}
             </button>
           </div>
@@ -219,7 +223,7 @@ const HomePage: React.FC = () => {
             {inputError ? (
               <InlineAlert
                 variant="danger"
-                title="输入有误"
+                title={uiText.home.inputErrorTitle}
                 message={inputError}
                 className="rounded-xl px-3 py-2 text-xs shadow-none"
               />
@@ -227,7 +231,7 @@ const HomePage: React.FC = () => {
             {!inputError && duplicateError ? (
               <InlineAlert
                 variant="warning"
-                title="任务已存在"
+                title={uiText.home.duplicateErrorTitle}
                 message={duplicateError}
                 className="rounded-xl px-3 py-2 text-xs shadow-none"
               />
@@ -262,7 +266,7 @@ const HomePage: React.FC = () => {
             ) : null}
             {isLoadingReport ? (
               <div className="flex h-full flex-col items-center justify-center">
-                <DashboardStateBlock title="加载报告中..." loading />
+                <DashboardStateBlock title={uiText.home.loadingReport} loading />
               </div>
             ) : selectedReport ? (
               <div className="max-w-4xl space-y-4 pb-8">
@@ -287,7 +291,7 @@ const HomePage: React.FC = () => {
                     <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
                     </svg>
-                    追问 AI
+                    {uiText.home.askFollowUp}
                   </Button>
                   <Button
                     variant="home-action-ai"
@@ -306,8 +310,8 @@ const HomePage: React.FC = () => {
             ) : (
               <div className="flex h-full items-center justify-center">
                 <EmptyState
-                  title="开始分析"
-                  description="输入股票代码进行分析，或从左侧选择历史报告查看。"
+                  title={uiText.home.startAnalysisTitle}
+                  description={uiText.home.startAnalysisDescription}
                   className="max-w-xl border-dashed"
                   icon={(
                     <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -333,14 +337,14 @@ const HomePage: React.FC = () => {
 
       <ConfirmDialog
         isOpen={showDeleteConfirm}
-        title="删除历史记录"
+        title={uiText.home.deleteHistoryTitle}
         message={
           selectedHistoryIds.length === 1
-            ? '确认删除这条历史记录吗？删除后将不可恢复。'
-            : `确认删除选中的 ${selectedHistoryIds.length} 条历史记录吗？删除后将不可恢复。`
+            ? uiText.home.deleteHistorySingle
+            : uiText.home.deleteHistoryMultiple(selectedHistoryIds.length)
         }
-        confirmText={isDeletingHistory ? '删除中...' : '确认删除'}
-        cancelText="取消"
+        confirmText={isDeletingHistory ? `${uiText.history.deleting}...` : uiText.home.deleteHistoryConfirm}
+        cancelText={uiText.home.deleteHistoryCancel}
         isDanger={true}
         onConfirm={handleDeleteSelectedHistory}
         onCancel={() => setShowDeleteConfirm(false)}

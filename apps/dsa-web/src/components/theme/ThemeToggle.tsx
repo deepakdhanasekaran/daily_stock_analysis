@@ -3,28 +3,20 @@ import { useEffect, useRef, useState } from 'react';
 import { Check, Monitor, Moon, Sun } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import { cn } from '../../utils/cn';
+import { useUiLanguage } from '../../contexts/UiLanguageContext';
+import { getUiText } from '../../utils/uiText';
 
 type ThemeOption = 'light' | 'dark' | 'system';
 type ThemeToggleVariant = 'default' | 'nav';
 
-const THEME_OPTIONS: Array<{
-  value: ThemeOption;
-  label: string;
-  icon: typeof Sun;
-}> = [
-  { value: 'light', label: '浅色', icon: Sun },
-  { value: 'dark', label: '深色', icon: Moon },
-  { value: 'system', label: '跟随系统', icon: Monitor },
-];
-
-function resolveThemeLabel(theme: string | undefined) {
+function resolveThemeLabel(theme: string | undefined, text: ReturnType<typeof getUiText>) {
   switch (theme) {
     case 'light':
-      return '浅色';
+      return text.theme.light;
     case 'dark':
-      return '深色';
+      return text.theme.dark;
     default:
-      return '跟随系统';
+      return text.theme.system;
   }
 }
 
@@ -38,6 +30,8 @@ export const ThemeToggle: React.FC<ThemeToggleProps> = ({
   collapsed = false,
 }) => {
   const { theme, resolvedTheme, setTheme } = useTheme();
+  const language = useUiLanguage();
+  const text = getUiText(language);
   const [open, setOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement | null>(null);
 
@@ -62,6 +56,11 @@ export const ThemeToggle: React.FC<ThemeToggleProps> = ({
   const visualTheme = resolvedTheme ?? 'dark';
   const TriggerIcon = visualTheme === 'light' ? Sun : Moon;
   const isNavVariant = variant === 'nav';
+  const themeOptions = [
+    { value: 'light' as const, label: text.theme.light, icon: Sun },
+    { value: 'dark' as const, label: text.theme.dark, icon: Moon },
+    { value: 'system' as const, label: text.theme.system, icon: Monitor },
+  ];
 
   return (
     <div className="relative" ref={containerRef}>
@@ -77,20 +76,20 @@ export const ThemeToggle: React.FC<ThemeToggleProps> = ({
         )}
         aria-haspopup="menu"
         aria-expanded={open}
-        aria-label="切换主题"
+        aria-label={language === 'en' ? 'Toggle theme' : '切换主题'}
       >
         <TriggerIcon className={cn('shrink-0', isNavVariant ? 'h-5 w-5' : 'h-4 w-4')} />
         {isNavVariant ? (
-          collapsed ? null : <span className="truncate text-[1.02rem] font-medium">主题</span>
+          collapsed ? null : <span className="truncate text-[1.02rem] font-medium">{text.shell.themeLabel}</span>
         ) : (
-          <span className="hidden sm:inline">{resolveThemeLabel(activeTheme)}</span>
+          <span className="hidden sm:inline">{resolveThemeLabel(activeTheme, text)}</span>
         )}
       </button>
 
       {open ? (
         <div
           role="menu"
-          aria-label="主题模式"
+          aria-label={text.shell.themeMenuLabel}
           className={cn(
             'z-[100] min-w-[8rem] overflow-hidden rounded-2xl border border-border/70 bg-elevated p-1.5 shadow-[0_24px_48px_rgba(3,8,20,0.32)] backdrop-blur-xl',
             isNavVariant
@@ -98,7 +97,7 @@ export const ThemeToggle: React.FC<ThemeToggleProps> = ({
               : 'absolute right-0 mt-2'
           )}
         >
-          {THEME_OPTIONS.map(({ value, label, icon: Icon }) => {
+          {themeOptions.map(({ value, label, icon: Icon }) => {
             const isActive = activeTheme === value;
             return (
               <button
